@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Levantamiento Olimpico De Pesas</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+    }
+
+    /* CABECERA ATLETA */
+    .athlete-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      margin-bottom: 1rem;
+      align-items: flex-end;
+    }
+    .athlete-form label {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .athlete-form input[type="text"],
+    .athlete-form input[type="date"] {
+      display: block;
+      margin-top: 0.25rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      min-width: 220px;
+    }
+    .athlete-form button {
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #1976d2;
+      color: #fff;
+    }
+    .athlete-card {
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
+      font-size: 0.95rem;
+    }
+    .athlete-card strong {
+      font-weight: 700;
+    }
+
+    /* TABS DE LEVANTAMIENTO (ARRANQUE / ENVION) */
+    .lift-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .lift-tab {
+      padding: 0.4rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .lift-tab.active {
+      background: #388e3c;
+      color: #fff;
+      border-color: #388e3c;
+      font-weight: 600;
+    }
+
+    /* TABS DE INTENTOS DENTRO DE CADA LEVANTAMIENTO */
+    .attempt-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.7rem;
+    }
+    .attempt-tab {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .attempt-tab.active {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1976d2;
+      font-weight: 600;
+    }
+
+    .lift-panel {
+      display: none;
+    }
+    .lift-panel.active {
+      display: block;
+    }
+    .attempt {
+      display: none;
+    }
+    .attempt.active {
+      display: block;
+    }
+    .attempt h2 {
+      margin: 0 0 0.7rem 0;
+      font-size: 1.05rem;
+    }
+
+    /* FASES / GRUPOS / ITEMS */
+    .phase {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      padding: 0.9rem 1rem;
+      background: #fafafa;
+    }
+    .phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.35rem;
+    }
+    .phase-title {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+    .group {
+      border-top: 1px solid #eee;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .group-title {
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 0.35rem;
+    }
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.25rem 0.75rem;
+    }
+    .item label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+    }
+    .item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* TOTALES */
+    .totals {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      font-size: 0.92rem;
+      align-items: center;
+    }
+    .chip {
+      background: #e3f2fd;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .chip.secondary {
+      background: #f1f8e9;
+    }
+    .chip.highlight {
+      background: #ffe082;
+    }
+
+    /* PANEL DE RESULTADOS (FINALIZAR) */
+    .results-panel {
+      margin-top: 1.5rem;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      background: #f3e5f5;
+      border: 1px solid #ce93d8;
+      font-size: 0.9rem;
+    }
+    .results-panel h3 {
+      margin-top: 0;
+      margin-bottom: 0.6rem;
+      font-size: 1.05rem;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.5rem 1.2rem;
+    }
+    .results-grid div span.label {
+      font-weight: 600;
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    /* BOTONES ACCIÓN */
+    .actions {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .actions button {
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: #1976d2;
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #eeeeee;
+      color: #333;
+    }
+
+    /* EXPORT JSON */
+    .save-area {
+      margin-top: 1rem;
+    }
+    .save-area textarea {
+      margin-top: 0.5rem;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8rem;
+      font-family: "Consolas", "Courier New", monospace;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .app {
+        max-width: none;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 1rem;
+      }
+      .athlete-form,
+      .actions,
+      .save-area {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>Planilla técnica – Levantamiento Olimpico De Pesas</h1>
+
+  <!-- FORMULARIO DE CARGA DE ATLETA -->
+  <form class="athlete-form" onsubmit="return false;">
+    <label>
+      Nombre del atleta
+      <input id="athleteName" type="text" placeholder="Ej: Juan Pérez">
+    </label>
+    <label>
+      Fecha
+      <input id="dateField" type="date">
+    </label>
+    <label>
+      Competencia / sesión
+      <input id="sessionField" type="text" placeholder="Ej: Torneo provincial">
+    </label>
+    <button id="loadAthleteBtn">Cargar atleta</button>
+  </form>
+
+  <!-- DATOS FIJOS DEL ATLETA -->
+  <div id="athleteCard" class="athlete-card" style="display:none;"></div>
+
+  <!-- TABS ARRANQUE / ENVION -->
+  <div class="lift-tabs" id="liftTabs"></div>
+
+  <!-- CONTENEDOR DE LEVANTAMIENTOS -->
+  <div id="liftsContainer"></div>
+
+  <!-- TOTALES RESUMIDOS -->
+  <div class="totals">
+    <span class="chip">Arranque – intento 1: <span id="total_arranque_1">0</span> pts</span>
+    <span class="chip">Arranque – intento 2: <span id="total_arranque_2">0</span> pts</span>
+    <span class="chip">Arranque – intento 3: <span id="total_arranque_3">0</span> pts</span>
+    <span class="chip secondary">Mejor Arranque: <span id="bestArranque">-</span></span>
+  </div>
+  <div class="totals" style="margin-top:0.5rem;">
+    <span class="chip">Envión – intento 1: <span id="total_envion_1">0</span> pts</span>
+    <span class="chip">Envión – intento 2: <span id="total_envion_2">0</span> pts</span>
+    <span class="chip">Envión – intento 3: <span id="total_envion_3">0</span> pts</span>
+    <span class="chip secondary">Mejor Envión: <span id="bestEnvion">-</span></span>
+    <span class="chip highlight">Total olímpico: <span id="totalOlimpico">0</span> pts</span>
+  </div>
+
+  <!-- DETALLE POR FASE DEL LEVANTAMIENTO/INTENTO ACTIVO -->
+  <div class="totals" style="margin-top:0.75rem;">
+    <strong>Detalle por periodo (levantamiento/ intento activo):</strong>
+    <div id="perPhaseTotals" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-left:0.7rem;"></div>
+  </div>
+
+  <!-- PANEL DE RESULTADOS ESTÉTICO -->
+  <div id="resultsPanel" class="results-panel" style="display:none;">
+    <h3>Resumen del atleta</h3>
+    <div class="results-grid">
+      <div><span class="label">Atleta:</span> <span id="resName">-</span></div>
+      <div><span class="label">Fecha:</span> <span id="resDate">-</span></div>
+      <div><span class="label">Competencia:</span> <span id="resSession">-</span></div>
+      <div><span class="label">Mejor Arranque:</span> <span id="resBestArranque">-</span></div>
+      <div><span class="label">Mejor Envión:</span> <span id="resBestEnvion">-</span></div>
+      <div><span class="label">Total olímpico:</span> <span id="resTotalOlimpico">0</span></div>
+    </div>
+  </div>
+
+  <!-- BOTONES -->
+  <div class="actions">
+    <button class="btn-primary" id="finalizarBtn">Finalizar / Calcular puntos</button>
+    <button class="btn-secondary" id="printBtn">Guardar en PDF (Imprimir)</button>
+    <button class="btn-secondary" id="exportJson">Exportar datos (JSON)</button>
+  </div>
+
+  <!-- EXPORT JSON -->
+  <div class="save-area">
+    <textarea id="output" rows="5" readonly
+      placeholder="Aquí aparecerán los datos en formato JSON cuando presiones Exportar."></textarea>
+  </div>
+</div>
+
+<script>
+  // ================= CONFIGURACIÓN BÁSICA =====================
+  const LIFTS = [
+    { id: "arranque", label: "Arranque" },
+    { id: "envion",   label: "Envión"   }
+  ];
+  const ATTEMPTS = 3;
+
+  /*
+    ESTRUCTURA TÉCNICA (simplificada, lista para ampliar):
+
+    – periods ("Primero / Segundo / Tercero") = PERÍODOS
+    – groups  = FASES dentro de cada período
+    – items   = puntos clave (pies, espalda, hombros, etc.)
+
+    Aquí podés meter TODA tu tabla real (mismas palabras que en la planilla).
+  */
+  const phases = [
+    {
+      id: "primero",
+      label: "Primero",
+      groups: [
+        {
+          id: "movInicialTiron",
+          label: "Mov. inicial del tirón",
+          items: [
+            { id: "intento", label: "Intento correcto", value: 1 },
+            { id: "pies",    label: "Pies",            value: 1 },
+            { id: "espalda", label: "Espalda",         value: 1 },
+            { id: "brazos",  label: "Brazos",          value: 1 },
+            { id: "hombros", label: "Hombros",         value: 1 }
+          ]
+        },
+        {
+          id: "salto",
+          label: "Salto",
+          items: [
+            { id: "cadera",  label: "Cadera",          value: 1 },
+            { id: "cabeza",  label: "Cabeza",          value: 1 },
+            { id: "pies_salto", label: "Pies",        value: 1 },
+            { id: "tronco",  label: "Tronco",          value: 1 }
+          ]
+        },
+        {
+          id: "entrada",
+          label: "Entrada",
+          items: [
+            { id: "pies_entrada", label: "Pies",      value: 1 },
+            { id: "brazos_ent",   label: "Brazos",    value: 1 },
+            { id: "espalda_ent",  label: "Espalda",   value: 1 }
+          ]
+        },
+        {
+          id: "recuperacion",
+          label: "Recuperación",
+          items: [
+            { id: "estabilidad", label: "Estabilidad", value: 1 },
+            { id: "ritmo",       label: "Ritmo",       value: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "segundo",
+      label: "Segundo",
+      groups: [
+        {
+          id: "movInicialTiron2",
+          label: "Mov. inicial del tirón",
+          items: [
+            { id: "pies2",    label: "Pies",    value: 1 },
+            { id: "espalda2", label: "Espalda", value: 1 },
+            { id: "brazos2",  label: "Brazos",  value: 1 },
+            { id: "hombros2", label: "Hombros", value: 1 }
+          ]
+        },
+        {
+          id: "salto2",
+          label: "Salto",
+          items: [
+            { id: "cadera2",  label: "Cadera",  value: 1 },
+            { id: "cabeza2",  label: "Cabeza",  value: 1 }
+          ]
+        },
+        {
+          id: "recuperacion2",
+          label: "Recuperación",
+          items: [
+            { id: "tronco2",     label: "Tronco",     value: 1 },
+            { id: "espalda2_rec",label: "Espalda",    value: 1 },
+            { id: "ritmo2",      label: "Ritmo",      value: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "tercero",
+      label: "Tercero",
+      groups: [
+        {
+          id: "posicionInicial",
+          label: "Posición inicial",
+          items: [
+            { id: "tronco3",   label: "Tronco",   value: 1 },
+            { id: "cadera3",   label: "Cadera",   value: 1 },
+            { id: "cabeza3",   label: "Cabeza",   value: 1 }
+          ]
+        },
+        {
+          id: "empuje",
+          label: "Empuje",
+          items: [
+            { id: "pecho",     label: "Pecho",    value: 1 },
+            { id: "pies3",     label: "Pies",     value: 1 },
+            { id: "codos",     label: "Codos",    value: 1 },
+            { id: "piernas",   label: "Piernas",  value: 1 }
+          ]
+        },
+        {
+          id: "recuperacion3",
+          label: "Recuperación final",
+          items: [
+            { id: "hombros3",  label: "Hombros",  value: 1 },
+            { id: "espalda3",  label: "Espalda",  value: 1 },
+            { id: "estabilidad3", label: "Estabilidad", value: 1 },
+            { id: "ritmo3",    label: "Ritmo",    value: 1 }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // =============== CARGA DE ATLETA ===================
+  const loadAthleteBtn = document.getElementById("loadAthleteBtn");
+  const athleteCard = document.getElementById("athleteCard");
+  const athleteNameInput = document.getElementById("athleteName");
+  const dateFieldInput = document.getElementById("dateField");
+  const sessionFieldInput = document.getElementById("sessionField");
+
+  let athleteData = { name: "", date: "", session: "" };
+
+  loadAthleteBtn.addEventListener("click", () => {
+    const name = athleteNameInput.value.trim();
+    const date = dateFieldInput.value;
+    const session = sessionFieldInput.value.trim();
+
+    if (!name) {
+      alert("Por favor cargá el nombre del atleta.");
+      return;
+    }
+
+    athleteData = { name, date, session };
+
+    athleteCard.style.display = "block";
+    athleteCard.innerHTML = `
+      <strong>Atleta:</strong> ${name || "-"} &nbsp; | &nbsp;
+      <strong>Fecha:</strong> ${date || "-"} &nbsp; | &nbsp;
+      <strong>Competencia:</strong> ${session || "-"}
+    `;
+
+    // Limpiar inputs
+    athleteNameInput.value = "";
+    dateFieldInput.value = "";
+    sessionFieldInput.value = "";
+  });
+
+  // =============== GENERACIÓN DE UI – LIFTS / ATTEMPTS ==================
+  const liftTabs = document.getElementById("liftTabs");
+  const liftsContainer = document.getElementById("liftsContainer");
+  let currentLift = "arranque";
+  let currentAttempt = 1;
+
+  LIFTS.forEach((lift, liftIndex) => {
+    // Tab del levantamiento
+    const tab = document.createElement("button");
+    tab.className = "lift-tab" + (liftIndex === 0 ? " active" : "");
+    tab.textContent = lift.label;
+    tab.dataset.lift = lift.id;
+    liftTabs.appendChild(tab);
+
+    // Panel del levantamiento
+    const panel = document.createElement("div");
+    panel.className = "lift-panel" + (liftIndex === 0 ? " active" : "");
+    panel.dataset.lift = lift.id;
+
+    // Tabs de intentos
+    const attemptTabs = document.createElement("div");
+    attemptTabs.className = "attempt-tabs";
+    attemptTabs.id = `attemptTabs_${lift.id}`;
+
+    for (let a = 1; a <= ATTEMPTS; a++) {
+      const atab = document.createElement("button");
+      atab.className = "attempt-tab" + (a === 1 ? " active" : "");
+      atab.textContent = `Intento ${a}`;
+      atab.dataset.lift = lift.id;
+      atab.dataset.attempt = String(a);
+      attemptTabs.appendChild(atab);
+    }
+    panel.appendChild(attemptTabs);
+
+    // Contenedor de intentos
+    const attemptsContainer = document.createElement("div");
+    attemptsContainer.id = `attemptsContainer_${lift.id}`;
+
+    for (let a = 1; a <= ATTEMPTS; a++) {
+      const attemptDiv = document.createElement("div");
+      attemptDiv.className = "attempt" + (a === 1 ? " active" : "");
+      attemptDiv.dataset.lift = lift.id;
+      attemptDiv.dataset.attempt = String(a);
+
+      const h2 = document.createElement("h2");
+      h2.textContent = `${lift.label} – intento ${a}`;
+      attemptDiv.appendChild(h2);
+
+      const phasesContainer = document.createElement("div");
+
+      phases.forEach(phase => {
+        const phaseDiv = document.createElement("div");
+        phaseDiv.className = "phase";
+
+        const header = document.createElement("div");
+        header.className = "phase-header";
+        header.innerHTML = `<div class="phase-title">${phase.label}</div>`;
+        phaseDiv.appendChild(header);
+
+        phase.groups.forEach(group => {
+          const groupDiv = document.createElement("div");
+          groupDiv.className = "group";
+
+          const title = document.createElement("div");
+          title.className = "group-title";
+          title.textContent = group.label;
+          groupDiv.appendChild(title);
+
+          const itemsDiv = document.createElement("div");
+          itemsDiv.className = "items";
+
+          group.items.forEach(item => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "item";
+            const id = `${lift.id}_attempt${a}_${phase.id}_${group.id}_${item.id}`;
+
+            itemDiv.innerHTML = `
+              <label for="${id}">
+                <input
+                  type="checkbox"
+                  id="${id}"
+                  data-lift="${lift.id}"
+                  data-attempt="${a}"
+                  data-phase="${phase.id}"
+                  data-item="${item.id}"
+                  data-value="${item.value}"
+                >
+                <span>${item.label}</span>
+              </label>
+            `;
+            itemsDiv.appendChild(itemDiv);
+          });
+
+          groupDiv.appendChild(itemsDiv);
+          phaseDiv.appendChild(groupDiv);
+        });
+
+        phasesContainer.appendChild(phaseDiv);
+      });
+
+      attemptDiv.appendChild(phasesContainer);
+      attemptsContainer.appendChild(attemptDiv);
+    }
+
+    panel.appendChild(attemptsContainer);
+    liftsContainer.appendChild(panel);
+  });
+
+  // Cambiar levantamiento (Arranque / Envión)
+  liftTabs.addEventListener("click", e => {
+    const btn = e.target.closest(".lift-tab");
+    if (!btn) return;
+    const liftId = btn.dataset.lift;
+    currentLift = liftId;
+
+    document.querySelectorAll(".lift-tab").forEach(b => {
+      b.classList.toggle("active", b === btn);
+    });
+    document.querySelectorAll(".lift-panel").forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.lift === liftId);
+    });
+    // reset intento actual a 1 al cambiar de levantamiento
+    currentAttempt = 1;
+    recalcTotals();
+  });
+
+  // Cambiar intento dentro de un levantamiento
+  document.addEventListener("click", e => {
+    const btn = e.target.closest(".attempt-tab");
+    if (!btn) return;
+    const liftId = btn.dataset.lift;
+    const attempt = Number(btn.dataset.attempt || "1");
+    currentLift = liftId;
+    currentAttempt = attempt;
+
+    document
+      .querySelectorAll(`.attempt-tab[data-lift="${liftId}"]`)
+      .forEach(b => b.classList.toggle("active", b === btn));
+    document
+      .querySelectorAll(`.attempt[data-lift="${liftId}"]`)
+      .forEach(div => div.classList.toggle(
+        "active",
+        Number(div.dataset.attempt) === attempt
+      ));
+    recalcTotals();
+  });
+
+  // =================== CÁLCULOS DE PUNTOS =============================
+  function recalcTotals() {
+    const totalsByLiftAttempt = {};          // lift -> attempt -> total
+    const totalsByLiftAttemptPhase = {};     // lift -> attempt -> phase -> total
+
+    const checkboxes = document.querySelectorAll(
+      'input[type="checkbox"][data-item]'
+    );
+
+    checkboxes.forEach(cb => {
+      const lift = cb.dataset.lift;
+      const attempt = Number(cb.dataset.attempt);
+      const phaseId = cb.dataset.phase;
+      const value = Number(cb.dataset.value || "0");
+
+      totalsByLiftAttempt[lift] ??= {};
+      totalsByLiftAttempt[lift][attempt] ??= 0;
+      totalsByLiftAttemptPhase[lift] ??= {};
+      totalsByLiftAttemptPhase[lift][attempt] ??= {};
+      totalsByLiftAttemptPhase[lift][attempt][phaseId] ??= 0;
+
+      if (cb.checked) {
+        totalsByLiftAttempt[lift][attempt] += value;
+        totalsByLiftAttemptPhase[lift][attempt][phaseId] += value;
+      }
+    });
+
+    // Actualizar totales chips (arranque/envion x intento)
+    LIFTS.forEach(lift => {
+      for (let a = 1; a <= ATTEMPTS; a++) {
+        const total = (totalsByLiftAttempt[lift.id] || {})[a] || 0;
+        const span = document.getElementById(`total_${lift.id}_${a}`);
+        if (span) span.textContent = total;
+      }
+    });
+
+    // Mejor Arranque / Envión
+    function computeBest(liftId) {
+      let bestScore = -Infinity;
+      let bestLabel = "-";
+      for (let a = 1; a <= ATTEMPTS; a++) {
+        const score = (totalsByLiftAttempt[liftId] || {})[a] || 0;
+        if (score > bestScore) {
+          bestScore = score;
+          bestLabel = `Intento ${a} (${score} pts)`;
+        }
+      }
+      if (bestScore < 0) return { bestScore: 0, bestLabel: "-" };
+      return { bestScore, bestLabel };
+    }
+
+    const bestA = computeBest("arranque");
+    const bestE = computeBest("envion");
+
+    document.getElementById("bestArranque").textContent = bestA.bestLabel;
+    document.getElementById("bestEnvion").textContent = bestE.bestLabel;
+
+    const totalOlimpico = bestA.bestScore + bestE.bestScore;
+    document.getElementById("totalOlimpico").textContent = totalOlimpico;
+
+    // Detalle por fase para levantamiento / intento activo
+    const perPhaseContainer = document.getElementById("perPhaseTotals");
+    perPhaseContainer.innerHTML = "";
+    const map =
+      ((totalsByLiftAttemptPhase[currentLift] || {})[currentAttempt]) || {};
+    phases.forEach(p => {
+      const val = map[p.id] || 0;
+      const span = document.createElement("span");
+      span.className = "chip secondary";
+      span.textContent = `${p.label}: ${val} pts`;
+      perPhaseContainer.appendChild(span);
+    });
+
+    // Devolvemos los datos por si alguien los necesita
+    return { totalsByLiftAttempt, bestA, bestE, totalOlimpico };
+  }
+
+  document.addEventListener("change", e => {
+    if (e.target.matches('input[type="checkbox"][data-item]')) {
+      recalcTotals();
+    }
+  });
+
+  // =================== FINALIZAR / PANEL ESTÉTICO =====================
+  const finalizarBtn = document.getElementById("finalizarBtn");
+  finalizarBtn.addEventListener("click", () => {
+    const { bestA, bestE, totalOlimpico } = recalcTotals();
+
+    document.getElementById("resName").textContent    = athleteData.name || "-";
+    document.getElementById("resDate").textContent    = athleteData.date || "-";
+    document.getElementById("resSession").textContent = athleteData.session || "-";
+    document.getElementById("resBestArranque").textContent = bestA.bestLabel;
+    document.getElementById("resBestEnvion").textContent   = bestE.bestLabel;
+    document.getElementById("resTotalOlimpico").textContent = totalOlimpico;
+
+    document.getElementById("resultsPanel").style.display = "block";
+    // scroll suave hacia el panel
+    document.getElementById("resultsPanel").scrollIntoView({ behavior: "smooth" });
+  });
+
+  // =================== PDF (IMPRIMIR) ================================
+  document.getElementById("printBtn").addEventListener("click", () => {
+    recalcTotals();
+    window.print();  // Elegir "Guardar como PDF" en el diálogo
+  });
+
+  // =================== EXPORTAR JSON =================================
+  document.getElementById("exportJson").addEventListener("click", () => {
+    const { totalsByLiftAttempt, bestA, bestE, totalOlimpico } = recalcTotals();
+
+    const attemptsData = [];
+    LIFTS.forEach(lift => {
+      for (let a = 1; a <= ATTEMPTS; a++) {
+        const selections = [];
+        document
+          .querySelectorAll(
+            `input[type="checkbox"][data-item][data-lift="${lift.id}"][data-attempt="${a}"]`
+          )
+          .forEach(cb => {
+            if (cb.checked) {
+              selections.push({
+                phase: cb.dataset.phase,
+                item: cb.dataset.item,
+                value: Number(cb.dataset.value || "0")
+              });
+            }
+          });
+        attemptsData.push({
+          lift: lift.id,
+          attempt: a,
+          total:
+            ((totalsByLiftAttempt[lift.id] || {})[a]) || 0,
+          selections
+        });
+      }
+    });
+
+    const result = {
+      athlete: athleteData,
+      bestArranque: bestA,
+      bestEnvion: bestE,
+      totalOlimpico,
+      attempts: attemptsData
+    };
+
+    document.getElementById("output").value =
+      JSON.stringify(result, null, 2);
+  });
+
+  // Inicializamos totales
+  recalcTotals();
+</script>
+</body>
+</html>
